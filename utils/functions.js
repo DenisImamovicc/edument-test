@@ -1,24 +1,15 @@
 const clientReqsStorage = []
+const removeElByAmount=1
 
-const getClientStoredReq = () => clientReqsStorage.splice(0, 1);
+const getClientStoredReq = (req) => clientReqsStorage.splice(findClientReqById(req),removeElByAmount);
 
-const updateClientReq = (req) => {
-    const webhookData = req.body.result
-    return clientReqsStorage[0].Data = webhookData
-}
+const updateClientReq = (req) => clientReqsStorage[findClientReqById(req)].Data = req.body.result
 
-const createClientReq = (req) => {
-    const clientId = req.params.id
-    return clientReqsStorage.push({ "clientId": clientId, "Data": null })
-}
+const createClientReq = (req) => clientReqsStorage.push({ "clientId": req.params.id, "Data": null })
 
-const isMatchingId = (req) => {
-    const webhookId = req.params.id
-    if (webhookId === clientReqsStorage[0].clientId) {
-        return true
-    }
-    return false
-}
+const findClientReqById = (req) => clientReqsStorage.findIndex(clientReq => clientReq.clientId === req.params.id)
+   
+const isMatchingId = (req) => clientReqsStorage.some(clientReq => clientReq.clientId === req.params.id)
 
 module.exports = {
     getClientStoredReq,
