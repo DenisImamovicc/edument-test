@@ -1,57 +1,60 @@
 const express = require('express')
-
 const EventEmitter = require('events');
 const eventEmitter = new EventEmitter();
 
 const app = express()
 const port = 3000
-const clientReqs = []
 
-const getDataFrom3rdParty = () => clientReqs.splice(0, 1);
+const clientReqsStorage = []
 
-async function match3rdPartyRes(req) {
-  const data = req.body.result
+const getClientStoredData = () => clientReqsStorage.splice(0, 1);
+
+function updateClientReq(req) {
+  const webhookData = req.body.result
+  clientReqsStorage[0].Data = webhookData
+  clientReqsStorage[0].isCompleted = true
+}
+
+function createClientReq(req) {
+  const clientId = req.params.id
+  return clientReqsStorage.push({ "clientId": clientId, "Data": null, isCompleted: false })
+}
+
+function checkMatchingId(req) {
   const webhookId = req.params.id
-
-  return clientReqs.forEach(clientReq => {
-    if (webhookId === clientReq.clientId) {
-      clientReq.Data = data
-      clientReq.isCompleted = true
-    }
-  })
-
+  return clientReqsStorage.some(clientReq => webhookId === clientReq.clientId)
 }
 
 app.use(express.json())
 app.post('/client/:id', (req, res) => {
-  const clientId = req.params.id
-  clientReqs.push({ "clientId": clientId, "Data": null, isCompleted: false })
-
+  createClientReq(req)
   eventEmitter.on('3rdPartyRes', () => {
     try {
-      res.send(getDataFrom3rdParty()).status(200)
+      res.send(getClientStoredData()).status(200)
     } catch (error) {
       res.send(error).status(404)
     }
+    console.log("end event");
   });
-
-  console.log(clientReqs);
+  console.log(clientReqsStorage);
 })
 
-app.post('/webhook/:id', (req, res) => {
-  console.log(`recieved webhook from client ${req.params.id}`, req.body);
-  match3rdPartyRes(req)
-  eventEmitter.emit('3rdPartyRes');
+app.post('/webhook/:id', async(req, res) => {
+  console.log(`recieved webhook from client ${req.params.id}`, req.body, clientReqsStorage);
 
-
+  //Implement asyncronic error handling and response
   try {
-    res.status(200).end()
+    if (checkMatchingId(req)) {
+      updateClientReq(req)
+      eventEmitter.emit('3rdPartyRes')
+      return res.sendStatus(200)
+    }
+    res.sendStatus(400).send(error.message)
   } catch (error) {
-    console.log(error);
-    res.status(404).end()
+    console.log(error)
   }
-})
 
+})
 app.listen(port, () => {
   console.log(port, `Live at http://localhost:${port}`)
 })
