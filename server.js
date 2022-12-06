@@ -9,18 +9,18 @@ const clientReqsStorage = []
 
 const getClientStoredData = () => clientReqsStorage.splice(0, 1);
 
-function updateClientReq(req) {
+const updateClientReq = (req) => {
   const webhookData = req.body.result
   clientReqsStorage[0].Data = webhookData
   clientReqsStorage[0].isCompleted = true
 }
 
-function createClientReq(req) {
+const createClientReq = (req) => {
   const clientId = req.params.id
   return clientReqsStorage.push({ "clientId": clientId, "Data": null, isCompleted: false })
 }
 
-function checkMatchingId(req) {
+const isMatchingId = (req) => {
   const webhookId = req.params.id
   return clientReqsStorage.some(clientReq => webhookId === clientReq.clientId)
 }
@@ -34,26 +34,20 @@ app.post('/client/:id', (req, res) => {
     } catch (error) {
       res.send(error).status(404)
     }
-    console.log("end event");
   });
-  console.log(clientReqsStorage);
 })
 
-app.post('/webhook/:id', async(req, res) => {
-  console.log(`recieved webhook from client ${req.params.id}`, req.body, clientReqsStorage);
-
-  //Implement asyncronic error handling and response
+app.post('/webhook/:id', async (req, res) => {
   try {
-    if (checkMatchingId(req)) {
+    if (isMatchingId(req)) {
       updateClientReq(req)
       eventEmitter.emit('3rdPartyRes')
       return res.sendStatus(200)
     }
-    res.sendStatus(400).send(error.message)
+    res.sendStatus(404).send(error.message)
   } catch (error) {
-    console.log(error)
+    console.log(error.message)
   }
-
 })
 app.listen(port, () => {
   console.log(port, `Live at http://localhost:${port}`)
