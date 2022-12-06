@@ -2,9 +2,9 @@ const express = require('express')
 const EventEmitter = require('events');
 const eventEmitter = new EventEmitter();
 const { getClientStoredReq, updateClientReq, createClientReq, isMatchingId } = require("./utils/functions");
-
+require('dotenv').config()
 const app = express()
-const port = 3000
+const PORT = process.env.PORT || 3000
 
 app.use(express.json())
 app.post('/client/:id', (req, res) => {
@@ -27,6 +27,6 @@ app.post('/webhook/:id', async (req, res) => {
   return res.sendStatus(404)
 })
 
-app.listen(port, () => {
-  console.log(port, `Live at http://localhost:${port}`)
+app.listen(PORT, () => {
+  console.log(PORT, `Live at http://localhost:${PORT}`)
 })
