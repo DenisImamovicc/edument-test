@@ -1,5 +1,4 @@
-const clientReqsStorage = []
-const removeElByAmount=1
+const {clientReqsStorage, removeElByAmount} = require("./variabels")
 
 const getClientStoredReq = (req) => clientReqsStorage.splice(findClientReqById(req),removeElByAmount);
 

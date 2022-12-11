@@ -2,11 +2,11 @@ const express = require('express')
 require('dotenv').config()
 const app = express()
 const PORT = process.env.PORT || 3000
-const EventEmitter = require('events');
-const eventEmitter = new EventEmitter();
+const EventEmitter = require('events')
+const eventEmitter = new EventEmitter()
 
 //Utils
-const { getClientStoredReq, updateClientReq, createClientReq, isMatchingId } = require("./utils/functions");
+const { getClientStoredReq, updateClientReq, createClientReq, isMatchingId } = require("./utils/functions")
 
 app.use(express.json())
 app.post('/client/:id', (req, res) => {
